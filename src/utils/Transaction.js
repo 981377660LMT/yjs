@@ -10,7 +10,15 @@ import {
   generateNewClientId,
   createID,
   cleanupYTextAfterTransaction,
-  IdSet, UpdateEncoderV1, UpdateEncoderV2, GC, StructStore, AbstractType, AbstractStruct, YEvent, Doc // eslint-disable-line
+  IdSet,
+  UpdateEncoderV1,
+  UpdateEncoderV2,
+  GC,
+  StructStore,
+  AbstractType,
+  AbstractStruct,
+  YEvent,
+  Doc // eslint-disable-line
 } from '../internals.js'
 
 import * as error from 'lib0/error'
@@ -51,7 +59,7 @@ export class Transaction {
    * @param {any} origin
    * @param {boolean} local
    */
-  constructor (doc, origin, local) {
+  constructor(doc, origin, local) {
     /**
      * The Yjs instance.
      * @type {Doc}
@@ -136,7 +144,7 @@ export class Transaction {
    * @deprecated
    * @type {Map<Number,Number>}
    */
-  get beforeState () {
+  get beforeState() {
     if (this._beforeState == null) {
       const sv = getStateVector(this.doc.store)
       this.insertSet.clients.forEach((ranges, client) => {
@@ -153,7 +161,7 @@ export class Transaction {
    * @deprecated
    * @type {Map<Number,Number>}
    */
-  get afterState () {
+  get afterState() {
     if (!this._done) error.unexpectedCase()
     if (this._afterState == null) {
       const sv = getStateVector(this.doc.store)
@@ -220,8 +228,15 @@ const tryToMergeWithLefts = (structs, pos) => {
   for (; i > 0; right = left, left = structs[--i - 1]) {
     if (left.deleted === right.deleted && left.constructor === right.constructor) {
       if (left.mergeWith(right)) {
-        if (right instanceof Item && right.parentSub !== null && /** @type {AbstractType<any>} */ (right.parent)._map.get(right.parentSub) === right) {
-          /** @type {AbstractType<any>} */ (right.parent)._map.set(right.parentSub, /** @type {Item} */ (left))
+        if (
+          right instanceof Item &&
+          right.parentSub !== null &&
+          /** @type {AbstractType<any>} */ (right.parent)._map.get(right.parentSub) === right
+        ) {
+          /** @type {AbstractType<any>} */ ;(right.parent)._map.set(
+            right.parentSub,
+            /** @type {Item} */ (left)
+          )
         }
         continue
       }
@@ -278,7 +293,10 @@ const tryMerge = (ds, store) => {
     for (let di = deleteItems.length - 1; di >= 0; di--) {
       const deleteItem = deleteItems[di]
       // start with merging the item next to the last deleted item
-      const mostRightIndexToCheck = math.min(structs.length - 1, 1 + findIndexSS(structs, deleteItem.clock + deleteItem.len - 1))
+      const mostRightIndexToCheck = math.min(
+        structs.length - 1,
+        1 + findIndexSS(structs, deleteItem.clock + deleteItem.len - 1)
+      )
       for (
         let si = mostRightIndexToCheck, struct = structs[si];
         si > 0 && struct.id.clock >= deleteItem.clock;
@@ -337,19 +355,16 @@ const cleanupTransactions = (transactionCleanups, i) => {
           // We need to think about the possibility that the user transforms the
           // Y.Doc in the event.
           if (type._dEH.l.length > 0 && (type._item === null || !type._item.deleted)) {
-            events = events
-              .filter(event =>
-                event.target._item === null || !event.target._item.deleted
-              )
-            events
-              .forEach(event => {
-                event.currentTarget = type
-                // path is relative to the current target
-                event._path = null
-              })
+            events = events.filter(
+              event => event.target._item === null || !event.target._item.deleted
+            )
+            events.forEach(event => {
+              event.currentTarget = type
+              // path is relative to the current target
+              event._path = null
+            })
             // sort events by path length so that top-level events are fired first.
-            events
-              .sort((event1, event2) => event1.path.length - event2.path.length)
+            events.sort((event1, event2) => event1.path.length - event2.path.length)
             // We don't need to check for events.length
             // because we know it has at least one element
             callEventHandlerListeners(type._dEH, events, transaction)
@@ -375,7 +390,7 @@ const cleanupTransactions = (transactionCleanups, i) => {
         const structs = /** @type {Array<GC|Item>} */ (store.clients.get(client))
         // we iterate from right to left so we can safely remove entries
         const firstChangePos = math.max(findIndexSS(structs, firstClock), 1)
-        for (let i = structs.length - 1; i >= firstChangePos;) {
+        for (let i = structs.length - 1; i >= firstChangePos; ) {
           i -= 1 + tryToMergeWithLefts(structs, i)
         }
       })
@@ -396,7 +411,14 @@ const cleanupTransactions = (transactionCleanups, i) => {
         }
       }
       if (!transaction.local && transaction.insertSet.clients.has(doc.clientID)) {
-        logging.print(logging.ORANGE, logging.BOLD, '[yjs] ', logging.UNBOLD, logging.RED, 'Changed the client-id because another client seems to be using it.')
+        logging.print(
+          logging.ORANGE,
+          logging.BOLD,
+          '[yjs] ',
+          logging.UNBOLD,
+          logging.RED,
+          'Changed the client-id because another client seems to be using it.'
+        )
         doc.clientID = generateNewClientId()
       }
       // @todo Merge all the transactions into one and provide send the data as a single update message
@@ -425,7 +447,11 @@ const cleanupTransactions = (transactionCleanups, i) => {
           doc.subdocs.add(subdoc)
         })
         subdocsRemoved.forEach(subdoc => doc.subdocs.delete(subdoc))
-        doc.emit('subdocs', [{ loaded: subdocsLoaded, added: subdocsAdded, removed: subdocsRemoved }, doc, transaction])
+        doc.emit('subdocs', [
+          { loaded: subdocsLoaded, added: subdocsAdded, removed: subdocsRemoved },
+          doc,
+          transaction
+        ])
         subdocsRemoved.forEach(subdoc => subdoc.destroy())
       }
 
